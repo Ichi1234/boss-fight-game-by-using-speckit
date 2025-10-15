@@ -41,6 +41,35 @@ Acceptance Scenarios:
 
 ---
 
+### Recent Additions (Features added after initial draft)
+
+The following features were implemented after the original spec and are considered part of the prototype scope. Tests and acceptance criteria below cover these additions.
+
+1. Double-jump with visual effect
+	- The player may perform one additional mid-air jump (max 2 jumps total). The second jump consumes the double-jump and spawns a brief visual effect (texture `double_jump`) at the player's position.
+	- Input: double-jump is triggered only on discrete press (JustDown) to avoid accidental consumption when holding the jump key.
+
+2. Secondary attack key
+	- In addition to the primary melee attack key (J), a secondary key (Z) triggers the same melee attack, allowing flexible input mappings.
+
+3. Projectile facing
+	- Projectiles are rotated so the sprite visually faces the direction of travel when fired. This supports diagonal trajectories and makes projectile direction clearer.
+
+4. Boss slam when player is underneath
+	- When the boss initiates a jump attack and the player is directly underneath (within a horizontal threshold), the boss will perform a fast downward slam instead of an airborne spin. The slam deals heavier damage on collision.
+
+5. Boss touch damage
+	- Touching the boss reduces player health (1 damage) even outside of special attack frames. Slam deals 2 damage and jump-attack collisions deal 1 damage. Player invulnerability windows prevent rapid repeated damage.
+
+6. End-overlay screens
+	- On boss death or player death, an end overlay is shown using user-provided images (`victory.png` / `you_die.png`). The overlay shows a full-width semi-transparent black bar whose height fits the image, and the image fades in along with the bar. Pressing `R` restarts the `GameScene`.
+
+7. Debug convenience
+	- The game emits console logs for certain collision events (for debugging) and provides an 'I' debug toggle to render physics rectangles.
+
+
+---
+
 ### User Story 3 - Health and UI (Priority: P2)
 
 As a player, I want clear feedback on health and boss status so I can make informed decisions during combat.
@@ -53,6 +82,14 @@ Acceptance Scenarios:
 
 1. **Given** the player takes damage, **When** damage occurs, **Then** the top-left mask breaks (animated) and the player briefly flashes; if all masks are broken, the player enters a death state.
 2. **Given** the boss takes damage, **When** damage occurs, **Then** the boss health bar reduces smoothly and the boss flashes or shows particle effects; when the bar reaches zero, boss death animation plays and fight ends.
+
+Additional Acceptance Scenarios (New features):
+
+4. **Given** the player is airborne and presses jump a second time, **When** the second press is detected, **Then** the player performs a double-jump and a `double_jump` visual plays at the player's location.
+
+5. **Given** the boss chooses to jump while the player is under it, **When** the jump begins, **Then** the boss performs a fast downward slam that deals 2 damage on collision with the player.
+
+6. **Given** the boss or player dies, **When** death occurs, **Then** the end overlay bar and the appropriate image (`victory` or `you_die`) fade in; pressing `R` restarts the fight.
 
 ---
 
@@ -76,6 +113,12 @@ Acceptance Scenarios:
 - **FR-008**: The camera MUST remain centered on the arena and not follow player outside arena bounds.
 - **FR-009**: Physics and collisions MUST use Phaser Arcade Physics; collision detection MUST be reliable at target 60 FPS.
 - **FR-010**: The game MUST include PreloadScene, GameScene, and UIScene.
+ - **FR-011**: The player MUST be able to perform a double-jump (max 2 jumps) and a visual effect MUST play on the second jump.
+ - **FR-012**: The game MUST support a secondary attack key mapping (Z) that triggers the same melee attack as J.
+ - **FR-013**: Projectiles MUST visually face their velocity direction when fired (rotated or flipped appropriately).
+ - **FR-014**: The boss MUST perform a downward slam when the player is directly underneath at jump time; slam MUST deal increased damage.
+ - **FR-015**: Touching the boss should damage the player (1 damage), with slam/jump variants applying higher damage as specified.
+ - **FR-016**: The system MUST display an end-overlay on boss/player death using user-provided images and a semi-transparent full-width bar whose height fits the image; overlay MUST fade in and support restart via key press.
 
 *Assumptions*: The assets `img/player.jpg` and `img/boss.jpg` exist or will be provided; default player masks are 5; browser environment supports WebGL or Canvas required by Phaser.
 

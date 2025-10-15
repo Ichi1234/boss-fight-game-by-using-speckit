@@ -1,0 +1,54 @@
+openapi: 3.0.3
+info:
+  title: Boss Fight Telemetry API (optional)
+  version: '0.1.0'
+  description: Optional endpoints for telemetry / session reporting for the boss-fight prototype.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/action:
+    post:
+      summary: Record a player action (for analytics)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Action'
+      responses:
+        '200':
+          description: OK
+  /api/session:
+    get:
+      summary: Get session metadata (placeholder)
+      responses:
+        '200':
+          description: Session info
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        playerId:
+          type: string
+        action:
+          type: string
+          description: e.g., move, jump, attack, dodge
+        timestamp:
+          type: string
+          format: date-time
+      required: [playerId, action, timestamp]
+    Session:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        playerCount:
+          type: integer
