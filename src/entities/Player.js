@@ -71,47 +71,30 @@ export default class Player {
         this.maxJumps = 2; // allow one mid-air jump
     }
 
-    // keep the physics body aligned to the bottom of the sprite when scale changes
+    // keep the physics body aligned when scale changes - use offset, not absolute position
     alignBodyToBottom() {
         if (!this.sprite || !this.sprite.body) return;
         try {
-            const pw = this.sprite.displayWidth;
-            const ph = this.sprite.displayHeight;
-            const bw = Math.round(pw * this.bodyWidthRatio);
-            const bh = Math.round(ph);
-            // update body size
-            this.sprite.body.setSize(bw, bh);
-            // compute sprite world top-left (respecting origin)
-            const worldLeft = this.sprite.x - pw * this.sprite.originX;
-            const worldTop = this.sprite.y - ph * this.sprite.originY;
-            // set absolute body position so it's centered under the sprite
-            const bodyX = Math.round(worldLeft + (pw - bw) / 2);
-            const bodyY = Math.round(worldTop);
-            this.sprite.body.x = bodyX;
-            this.sprite.body.y = bodyY;
+            // Get the actual texture frame size (before scaling)
+            const frameW = this.sprite.frame.width;
+            const frameH = this.sprite.frame.height;
+            // Calculate body size based on display size
+            const bw = Math.round(this.sprite.displayWidth * this.bodyWidthRatio);
+            const bh = Math.round(this.sprite.displayHeight);
+            // Set body size in frame coordinates
+            this.sprite.body.setSize(bw / this.sprite.scaleX, bh / this.sprite.scaleY);
+            // Calculate offset to center body horizontally within the frame
+            const offsetX = (frameW - (bw / this.sprite.scaleX)) / 2;
+            const offsetY = 0;
+            this.sprite.body.setOffset(offsetX, offsetY);
         } catch (e) {
             // ignore if body not ready
         }
     }
 
-    // Force the body to be centered horizontally and aligned to the bottom of the sprite
+    // Force the body to be centered horizontally - use offset, not absolute position
     snapBody() {
-        if (!this.sprite || !this.sprite.body) return;
-        try {
-            const pw = this.sprite.displayWidth;
-            const ph = this.sprite.displayHeight;
-            const bw = Math.round(pw * this.bodyWidthRatio);
-            const bh = Math.round(ph);
-            // set body size
-            this.sprite.body.setSize(bw, bh);
-            // compute world top-left of sprite and set absolute body position
-            const worldLeft = this.sprite.x - pw * this.sprite.originX;
-            const worldTop = this.sprite.y - ph * this.sprite.originY;
-            const bodyX = Math.round(worldLeft + (pw - bw) / 2);
-            const bodyY = Math.round(worldTop);
-            this.sprite.body.x = bodyX;
-            this.sprite.body.y = bodyY;
-        } catch (e) {}
+        this.alignBodyToBottom();
     }
 
     update() {
@@ -169,31 +152,15 @@ export default class Player {
         }
         
 
-        // Safety clamp: if player's sprite bottom goes below the floor top, snap it back onto the floor.
-        // Because sprite origin is bottom-center, sprite.y represents the visual bottom. If that value
-        // is greater than the floor's Y (floor top), we need to move the sprite up, stop vertical motion,
-        // and realign the physics body.
+        // Reset jump count when grounded (let physics handle positioning, no forced teleport)
         try {
-            if (this.sprite && this.sprite.body && this.scene && this.scene.floor) {
-                const floorTop = this.scene.floor.y;
-                if (typeof floorTop === 'number' && this.sprite.y > floorTop) {
-                    // stop vertical movement and place sprite just above the floor so Arcade's onFloor() works
-                    try { this.sprite.setVelocityY(0); } catch (e) {}
-                    // place 1 pixel above the floor top to ensure physics registers as grounded
-                    this.sprite.y = floorTop - 1;
-                    // ensure gravity is enabled so future physics behave normally
-                    try { this.sprite.body.allowGravity = true; } catch (e) {}
-                    // re-align the body under the sprite
-                    this.snapBody();
-                    // reset jump count when touching the floor via clamp
+            if (this.sprite && this.sprite.body) {
+                const onFloor = typeof this.sprite.body.onFloor === 'function' 
+                    ? this.sprite.body.onFloor() 
+                    : this.sprite.body.onFloor;
+                if (onFloor) {
                     this.jumpCount = 0;
                 }
-                // if the body reports onFloor, reset jumpCount so the player can jump again
-                try {
-                    if (this.sprite.body && (typeof this.sprite.body.onFloor === 'function' ? this.sprite.body.onFloor() : this.sprite.body.onFloor)) {
-                        this.jumpCount = 0;
-                    }
-                } catch (e) {}
             }
         } catch (e) {}
     }

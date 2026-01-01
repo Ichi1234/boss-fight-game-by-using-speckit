@@ -24,8 +24,8 @@ export default class GameScene extends Phaser.Scene {
             bg.setScale(scale).setScrollFactor(0).setDepth(-10);
         }
 
-        // create a floor region that occupies 35% of the screen height at the bottom
-    const floorHeight = Math.floor(h * 0.35);
+        // create a floor region that occupies 25% of the screen height at the bottom
+    const floorHeight = Math.floor(h * 0.25);
     const floorWidth = w;
     const floorX = 0;
     const floorY = Math.floor(h - floorHeight);
